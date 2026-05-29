@@ -29,6 +29,11 @@ public class ListController {
 
     @PostMapping
     public ShoppingList createList(@RequestBody ShoppingList list) {
+        if (list.getItems() != null) {
+            for (ShoppingItem item : list.getItems()) {
+                item.setShoppingList(list);
+            }
+        }
         return listRepository.save(list);
     }
 
