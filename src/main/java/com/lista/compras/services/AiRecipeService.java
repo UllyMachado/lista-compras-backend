@@ -47,10 +47,18 @@ public class AiRecipeService {
     }
 
     public ShoppingList generateListFromRecipe(String recipe) throws Exception {
-        String systemPrompt = "You are a shopping list assistant. " +
-                "Extract the recipe name and ingredients from the recipe. Return ONLY a valid JSON object with two fields: 'recipeName' (string) and 'items' (array of objects). " +
-                "Each item object must have the following fields: 'description' (string), 'quantity' (number), 'unit' (string: UND, G, KG, L, ML), 'price' (number: 0.0), 'isChecked' (boolean: false). " +
-                "If the unit is not clear, use 'UND'. Do not include markdown formatting or json code blocks, just the raw JSON object.";
+        String systemPrompt = "You are a shopping list assistant. Extract the recipe name and ingredients from the recipe. " +
+                "Return ONLY a valid JSON object with two fields: 'recipeName' (string) and 'items' (array of objects). " +
+                "Each item object must have: 'description' (string), 'quantity' (number), 'unit' (string: 'und', 'g', 'kg', 'l', 'ml'), 'price' (number: 0.0), 'isChecked' (boolean: false). " +
+                "Follow these strict parsing rules: " +
+                "1. Allowed units are ONLY: 'und', 'g', 'kg', 'l', 'ml'. " +
+                "2. If the unit of measure is not clear, or if it refers to packaging like 'lata' (can), 'caixa' (box), 'caixinha', 'saco' (bag), 'cx', 'pacote' (pack), 'xícara' (cup), 'colher' (spoon), or similar, you MUST set the 'unit' to 'und'. " +
+                "3. If the recipe specifies a weight/volume for these packages, extract it and append it to the description in parentheses. E.g.: " +
+                "\"Leite Condensado: 2 latas (395 g cada) ou 2 caixinhas\" -> description: \"Leite Condensado (395g)\", quantity: 2, unit: \"und\"; " +
+                "\"1 saco de arroz de 5 kg\" -> description: \"Arroz (5kg)\", quantity: 1, unit: \"und\"; " +
+                "\"2 caixas de creme de leite (200g)\" -> description: \"Creme de leite (200g)\", quantity: 2, unit: \"und\". " +
+                "4. The 'price' must always be 0.0. " +
+                "5. Do not include markdown formatting or json code blocks, just the raw JSON object.";
 
         String requestBody = """
                 {
@@ -97,12 +105,9 @@ public class AiRecipeService {
         ShoppingList list = new ShoppingList();
         list.setName(parsed.recipeName != null ? parsed.recipeName : "Nova Lista");
         list.setBudget(0.0);
-        list = listRepository.save(list);
 
         for (ShoppingItem item : parsed.items) {
-            item.setShoppingList(list);
             item.setPrice(0.0); // Enforce 0.0
-            itemRepository.save(item);
         }
 
         list.setItems(parsed.items);
