@@ -4,9 +4,12 @@ import com.lista.compras.models.ShoppingItem;
 import com.lista.compras.models.ShoppingList;
 import com.lista.compras.repositories.ShoppingItemRepository;
 import com.lista.compras.repositories.ShoppingListRepository;
+import com.lista.compras.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +25,9 @@ public class ListController {
     @Autowired
     private ShoppingItemRepository itemRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @GetMapping
     public List<ShoppingList> getAllLists() {
         return listRepository.findAll();
@@ -31,6 +37,7 @@ public class ListController {
     public ShoppingList createList(@RequestBody ShoppingList list) {
         if (list.getItems() != null) {
             for (ShoppingItem item : list.getItems()) {
+                validateItem(item);
                 item.setShoppingList(list);
             }
         }
@@ -65,6 +72,11 @@ public class ListController {
     public ResponseEntity<ShoppingItem> addItem(@PathVariable String listId, @RequestBody ShoppingItem item) {
         return listRepository.findById(listId).map(list -> {
             item.setShoppingList(list);
+            if (item.getCategory() != null && item.getCategory().getId() != null) {
+                categoryRepository.findById(item.getCategory().getId()).ifPresent(item::setCategory);
+            } else {
+                categoryRepository.findByName("Outros").ifPresent(item::setCategory);
+            }
             return ResponseEntity.ok(itemRepository.save(item));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -77,6 +89,11 @@ public class ListController {
             item.setPrice(itemDetails.getPrice());
             item.setIsChecked(itemDetails.getIsChecked());
             item.setUnit(itemDetails.getUnit());
+            if (itemDetails.getCategory() != null && itemDetails.getCategory().getId() != null) {
+                categoryRepository.findById(itemDetails.getCategory().getId()).ifPresent(item::setCategory);
+            } else {
+                categoryRepository.findByName("Outros").ifPresent(item::setCategory);
+            }
             return ResponseEntity.ok(itemRepository.save(item));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -88,5 +105,17 @@ public class ListController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    private void validateItem(ShoppingItem item) {
+        if (item.getDescription() == null || item.getDescription().trim().length() < 2 || item.getDescription().trim().length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Descrição deve conter entre 2 e 100 caracteres.");
+        }
+        if (item.getPrice() == null || item.getPrice() < 0.0 || item.getPrice() > 99999.99) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Preço deve ser entre 0.00 e 99.999,99.");
+        }
+        if (item.getQuantity() == null || item.getQuantity() < 0.01 || item.getQuantity() > 9999.0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade deve ser entre 0.01 e 9.999.");
+        }
     }
 }
