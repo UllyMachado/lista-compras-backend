@@ -4,6 +4,7 @@ import com.lista.compras.models.ShoppingItem;
 import com.lista.compras.models.ShoppingList;
 import com.lista.compras.repositories.ShoppingItemRepository;
 import com.lista.compras.repositories.ShoppingListRepository;
+import com.lista.compras.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,9 @@ public class ListController {
 
     @Autowired
     private ShoppingItemRepository itemRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @GetMapping
     public List<ShoppingList> getAllLists() {
@@ -66,22 +70,30 @@ public class ListController {
 
     @PostMapping("/{listId}/items")
     public ResponseEntity<ShoppingItem> addItem(@PathVariable String listId, @RequestBody ShoppingItem item) {
-        validateItem(item);
         return listRepository.findById(listId).map(list -> {
             item.setShoppingList(list);
+            if (item.getCategory() != null && item.getCategory().getId() != null) {
+                categoryRepository.findById(item.getCategory().getId()).ifPresent(item::setCategory);
+            } else {
+                categoryRepository.findByName("Outros").ifPresent(item::setCategory);
+            }
             return ResponseEntity.ok(itemRepository.save(item));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{listId}/items/{itemId}")
     public ResponseEntity<ShoppingItem> updateItem(@PathVariable String listId, @PathVariable String itemId, @RequestBody ShoppingItem itemDetails) {
-        validateItem(itemDetails);
         return itemRepository.findById(itemId).map(item -> {
             item.setDescription(itemDetails.getDescription());
             item.setQuantity(itemDetails.getQuantity());
             item.setPrice(itemDetails.getPrice());
             item.setIsChecked(itemDetails.getIsChecked());
             item.setUnit(itemDetails.getUnit());
+            if (itemDetails.getCategory() != null && itemDetails.getCategory().getId() != null) {
+                categoryRepository.findById(itemDetails.getCategory().getId()).ifPresent(item::setCategory);
+            } else {
+                categoryRepository.findByName("Outros").ifPresent(item::setCategory);
+            }
             return ResponseEntity.ok(itemRepository.save(item));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }

@@ -22,6 +22,11 @@ public class ShoppingItem {
     
     private Boolean isChecked = false;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.SET_NULL)
+    private Category category;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "list_id")
     @JsonIgnore
@@ -83,6 +88,14 @@ public class ShoppingItem {
 
     public void setIsChecked(Boolean checked) {
         isChecked = checked;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public ShoppingList getShoppingList() {
