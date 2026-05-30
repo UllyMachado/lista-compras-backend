@@ -7,6 +7,8 @@ import com.lista.compras.repositories.ShoppingListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +33,7 @@ public class ListController {
     public ShoppingList createList(@RequestBody ShoppingList list) {
         if (list.getItems() != null) {
             for (ShoppingItem item : list.getItems()) {
+                validateItem(item);
                 item.setShoppingList(list);
             }
         }
@@ -63,6 +66,7 @@ public class ListController {
 
     @PostMapping("/{listId}/items")
     public ResponseEntity<ShoppingItem> addItem(@PathVariable String listId, @RequestBody ShoppingItem item) {
+        validateItem(item);
         return listRepository.findById(listId).map(list -> {
             item.setShoppingList(list);
             return ResponseEntity.ok(itemRepository.save(item));
@@ -71,6 +75,7 @@ public class ListController {
 
     @PutMapping("/{listId}/items/{itemId}")
     public ResponseEntity<ShoppingItem> updateItem(@PathVariable String listId, @PathVariable String itemId, @RequestBody ShoppingItem itemDetails) {
+        validateItem(itemDetails);
         return itemRepository.findById(itemId).map(item -> {
             item.setDescription(itemDetails.getDescription());
             item.setQuantity(itemDetails.getQuantity());
@@ -88,5 +93,17 @@ public class ListController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    private void validateItem(ShoppingItem item) {
+        if (item.getDescription() == null || item.getDescription().trim().length() < 2 || item.getDescription().trim().length() > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Descrição deve conter entre 2 e 100 caracteres.");
+        }
+        if (item.getPrice() == null || item.getPrice() < 0.0 || item.getPrice() > 99999.99) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Preço deve ser entre 0.00 e 99.999,99.");
+        }
+        if (item.getQuantity() == null || item.getQuantity() < 0.01 || item.getQuantity() > 9999.0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade deve ser entre 0.01 e 9.999.");
+        }
     }
 }
