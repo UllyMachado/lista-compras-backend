@@ -1,44 +1,22 @@
 package com.lista.compras.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lista.compras.models.ShoppingItem;
 import com.lista.compras.models.ShoppingList;
-import com.lista.compras.repositories.ShoppingItemRepository;
-import com.lista.compras.repositories.ShoppingListRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AiRecipeService {
 
-    @Value("${ai.api.key}")
-    private String apiKey;
-
-    @Value("${ai.api.url}")
-    private String apiUrl;
-
-    @Value("${ai.api.model}")
-    private String apiModel;
-
-    @Autowired
-    private ShoppingListRepository listRepository;
-
-    @Autowired
-    private ShoppingItemRepository itemRepository;
-
-    private final RestClient restClient;
+    private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
 
-    public AiRecipeService() {
-        this.restClient = RestClient.create();
-        this.objectMapper = new ObjectMapper();
+    public AiRecipeService(ChatClient.Builder chatClientBuilder, ObjectMapper objectMapper) {
+        this.chatClient = chatClientBuilder.build();
+        this.objectMapper = objectMapper;
     }
 
     public static class AiResponse {
@@ -46,7 +24,7 @@ public class AiRecipeService {
         public List<ShoppingItem> items;
     }
 
-    public ShoppingList generateListFromRecipe(String recipe) throws Exception {
+    public ShoppingList generateListFromRecipe(String recipe) {
         String systemPrompt = "You are an expert shopping list assistant. Extract the recipe name and ingredients from the recipe. " +
                 "Return ONLY a valid JSON object with two fields: 'recipeName' (string) and 'items' (array of objects). " +
                 "Each item object must have: 'description' (string), 'quantity' (number), 'unit' (string: 'und', 'g', 'kg', 'l', 'ml'), 'price' (number: 0.0), 'isChecked' (boolean: false). " +
@@ -73,57 +51,41 @@ public class AiRecipeService {
                 "3. The 'price' must always be 0.0. " +
                 "4. Do not include markdown formatting or json code blocks, just the raw JSON object.";
 
-        String requestBody = """
-                {
-                  "model": "%s",
-                  "messages": [
-                    {
-                      "role": "system",
-                      "content": "%s"
-                    },
-                    {
-                      "role": "user",
-                      "content": "Recipe:\\n%s"
-                    }
-                  ]
+        try {
+            String aiResponseText = this.chatClient.prompt()
+                    .system(systemPrompt)
+                    .user("Recipe:\n" + recipe)
+                    .call()
+                    .content();
+
+            if (aiResponseText != null) {
+                aiResponseText = aiResponseText.replaceAll("```json", "").replaceAll("```", "").trim();
+            } else {
+                throw new RuntimeException("Empty response from AI");
+            }
+
+            AiResponse parsed = objectMapper.readValue(aiResponseText, AiResponse.class);
+
+            ShoppingList list = new ShoppingList();
+            list.setName(parsed.recipeName != null ? parsed.recipeName : "Nova Lista");
+            list.setBudget(0.0);
+            list.setDescription("Gerada por IA a partir de uma receita.");
+            list.setStatus("OPEN");
+
+            if (parsed.items != null) {
+                for (ShoppingItem item : parsed.items) {
+                    item.setPrice(0.0); // Enforce 0.0
                 }
-                """.formatted(
-                    apiModel, 
-                    systemPrompt.replace("\"", "\\\"").replace("\n", "\\n"), 
-                    recipe.replace("\"", "\\\"").replace("\n", "\\n")
-                );
-
-        String response = restClient.post()
-                .uri(apiUrl)
-                .header("Authorization", "Bearer " + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
-
-        // Parse OpenRouter/Groq Response
-        Map<String, Object> jsonResponse = objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {});
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) jsonResponse.get("choices");
-        if (choices == null || choices.isEmpty()) {
-            throw new RuntimeException("No response from AI");
+                list.setItems(parsed.items);
+            }
+            return list;
+        } catch (Exception e) {
+            System.err.println("Erro ao chamar o serviço de IA: " + e.getMessage());
+            ShoppingList fallbackList = new ShoppingList();
+            fallbackList.setName("Erro ao processar receita");
+            fallbackList.setDescription("Ocorreu um erro no serviço de IA: " + e.getMessage());
+            fallbackList.setStatus("ERROR");
+            return fallbackList;
         }
-        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-        String text = (String) message.get("content");
-
-        // Clean text from markdown if the LLM hallucinated markdown
-        text = text.replaceAll("```json", "").replaceAll("```", "").trim();
-
-        AiResponse parsed = objectMapper.readValue(text, AiResponse.class);
-
-        ShoppingList list = new ShoppingList();
-        list.setName(parsed.recipeName != null ? parsed.recipeName : "Nova Lista");
-        list.setBudget(0.0);
-
-        for (ShoppingItem item : parsed.items) {
-            item.setPrice(0.0); // Enforce 0.0
-        }
-
-        list.setItems(parsed.items);
-        return list;
     }
 }

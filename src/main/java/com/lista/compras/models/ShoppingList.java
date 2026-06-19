@@ -16,6 +16,12 @@ public class ShoppingList {
     
     private Double budget;
 
+    private String description;
+    
+    private String status = "OPEN";
+    
+    private String createdAt;
+
     @OneToMany(mappedBy = "shoppingList", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShoppingItem> items = new ArrayList<>();
 
@@ -23,6 +29,9 @@ public class ShoppingList {
     public void ensureId() {
         if (this.id == null || this.id.isEmpty()) {
             this.id = UUID.randomUUID().toString();
+        }
+        if (this.createdAt == null) {
+            this.createdAt = java.time.LocalDateTime.now().toString();
         }
     }
 
@@ -56,6 +65,30 @@ public class ShoppingList {
 
     public void setBudget(Double budget) {
         this.budget = budget;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public List<ShoppingItem> getItems() {
