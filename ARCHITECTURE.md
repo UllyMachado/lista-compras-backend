@@ -114,7 +114,20 @@ O **go_router** gerencia a navegação com suporte a caminhos URL estruturados (
 
 ---
 
-## 4. Regras de Negócio do Sistema
+## 4. Estrutura da Entidade Principal
+
+Para suprir os requisitos estruturais e relacionais do negócio, a entidade principal `ShoppingList` conta com **7 atributos persistidos**:
+*   `id`: Identificador único (UUID/Long).
+*   `name`: Título ou nome da lista de compras.
+*   `budget`: Orçamento máximo estipulado pelo usuário.
+*   `description`: Descrição detalhada do objetivo da lista.
+*   `status`: Estado atual da lista (ex: "OPEN", "COMPLETED", "ERROR").
+*   `createdAt`: Timestamp de quando a lista foi criada.
+*   `items`: Lista de itens vinculados (Relacionamento 1:N com `ShoppingItem`).
+
+---
+
+## 5. Regras de Negócio do Sistema
 
 Para garantir a coerência e integridade dos dados e evitar entradas maliciosas ou fora do escopo prático de compras, o backend aplica rigidamente 3 regras de negócio cruciais na validação dos itens:
 
@@ -134,4 +147,5 @@ Para garantir a coerência e integridade dos dados e evitar entradas maliciosas 
 
 *   **Uso de `flutter_secure_storage`:** Preferido em detrimento do `SharedPreferences` para armazenar chaves de segurança (tokens JWT). Enquanto o SharedPreferences salva em arquivos XML/JSON comuns sem criptografia, o Secure Storage utiliza *Keystore* (Android) e *Keychain* (iOS) garantindo proteção criptográfica a nível de hardware.
 *   **Arquitetura Baseada em Interceptores:** Centralizar a lógica de renovação silenciosa de tokens no `AuthInterceptor` evita a necessidade de tratar expirações em cada chamada REST individualmente na camada de UI.
+*   **Integração Nativa de IA com Spring AI:** Em vez de usar requisições HTTP genéricas (RestClient/WebClient), o backend adota o **SDK Oficial Spring AI**, que abstrai as chamadas ao provedor de IA e trata de forma transparente fallbacks e formatação de prompts, tornando a aplicação aderente a padrões corporativos robustos.
 *   **SQLite como Banco de Dados do Backend:** SQLite foi selecionado para persistência do Spring Boot por ser um motor embarcado que não exige gerenciamento ou instalação de servidores externos (como MySQL ou PostgreSQL), facilitando a portabilidade e permitindo rodar a aplicação imediatamente.
