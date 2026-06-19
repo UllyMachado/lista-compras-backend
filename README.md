@@ -1,6 +1,6 @@
 # 🛒 Lista de Compras - Backend
 
-Este repositório contém o backend da aplicação **Lista de Compras**, uma API REST desenvolvida em Java com Spring Boot. A API gerencia listas de compras, controle de itens, autenticação baseada em JWT e inclui uma integração inovadora com Inteligência Artificial para gerar listas de compras completas a partir de receitas fornecidas em linguagem natural.
+Este repositório contém o backend da aplicação **Lista de Compras**, uma API REST desenvolvida em Java com Spring Boot. A API gerencia listas de compras, controle de itens, autenticação baseada em JWT e inclui uma integração com Inteligência Artificial para gerar listas de compras completas a partir de receitas fornecidas em linguagem natural.
 
 ---
 
@@ -14,43 +14,44 @@ Este repositório contém o backend da aplicação **Lista de Compras**, uma API
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🔐 Credenciais de Teste
 
-O ecossistema do projeto é baseado em tecnologias modernas e robustas para o ecossistema Java:
+O banco de dados SQLite local é semeado (*seeded*) automaticamente na primeira execução com um usuário administrador padrão:
 
-*   **Java 21:** Recursos modernos de linguagem e melhor desempenho.
-*   **Spring Boot 3.4.0:** Base do backend, utilizando:
-    *   *Spring Web* para os endpoints REST.
-    *   *Spring Security* para o controle de acesso e autenticação.
-    *   *Spring Data JPA* para abstração da camada de persistência.
-*   **SQLite:** Banco de dados relacional local, leve e de configuração rápida.
-*   **Hibernate Community Dialects (v6.4.4):** Para suporte nativo ao dialeto SQLite na JPA.
-*   **JJWT (io.jsonwebtoken v0.12.6):** Biblioteca moderna para geração e validação de tokens JWT (HS256).
-*   **Springdoc OpenAPI UI (v2.5.0):** Para geração e visualização automatizada da documentação interativa no Swagger.
+*   **E-mail:** `admin@gmail.com`
+*   **Senha:** `123456`
 
 ---
 
-## 📁 Estrutura de Pastas e Componentes
+## 🛠️ Tecnologias Utilizadas (Ecosistema Global)
 
-A arquitetura do backend segue uma estrutura organizada por camadas:
+O ecossistema do projeto é baseado em tecnologias modernas e robustas:
 
-```
-src/main/java/com/lista/compras/
-├── controllers/      # Controladores REST que expõem os endpoints da API.
-├── dto/              # Objetos de Transferência de Dados (AuthRequest, AuthResponse, etc.).
-├── models/           # Entidades de domínio mapeadas para JPA (User, ShoppingList, ShoppingItem, UnitEnum).
-├── repositories/     # Interfaces de repositório do Spring Data JPA.
-├── security/         # Filtros, serviços e configurações do Spring Security e JWT.
-└── services/         # Camada de lógica de negócio (ex: processamento de receitas por IA).
-```
+### Backend
+*   **Java 21:** Recursos modernos de linguagem e melhor desempenho.
+*   **Spring Boot 3.4.0:** Base do backend, utilizando:
+    *   *Spring Web* para os endpoints REST.
+    *   *Spring Security* para o controle de acesso e autenticação JWT.
+    *   *Spring Data JPA* para abstração da camada de persistência.
+*   **SQLite:** Banco de dados relacional local, leve e de configuração rápida (`lista-compras.db`).
+*   **Hibernate Community Dialects (v6.4.4):** Para suporte nativo ao dialeto SQLite na JPA.
+*   **JJWT (io.jsonwebtoken v0.12.6):** Biblioteca moderna para geração e validação de tokens JWT (HS256).
+*   **Springdoc OpenAPI UI (v2.5.0):** Para geração e visualização automatizada da documentação interativa no Swagger.
+*   **LLM AI Integration:** Conectividade com provedores compatíveis com a API OpenAI (ex: Groq/Llama 3.1) para conversão inteligente de receitas em linguagem natural em itens estruturados de compras.
+
+### Frontend (Flutter App)
+*   **Provider** para gerência reativa do estado global.
+*   **Chopper & OpenAPI Client Generator** para geração de código de API.
+*   **flutter_secure_storage** para persistência encriptada de tokens JWT de forma segura no dispositivo.
+*   **fl_chart** para gráficos de pizza responsivos que ilustram a conclusão das compras.
+*   **share_plus** para formatação de texto e envio de listas através dos canais nativos do dispositivo.
 
 ---
 
 ## ⚙️ Configuração e Instalação
 
 ### Pré-requisitos
-
-Para executar este projeto localmente, certifique-se de ter instalado:
+Para executar o backend localmente, certifique-se de ter instalado:
 *   **Java Development Kit (JDK) 21**
 *   **Gradle** (ou utilize o wrapper `./gradlew` incluso no projeto)
 
@@ -64,14 +65,14 @@ AI_API_MODEL=llama-3.1-8b-instant
 ```
 
 > [!NOTE]
-> O backend suporta qualquer provedor com API compatível com o formato OpenAI (como Groq, OpenRouter ou o próprio OpenAI).
+> O backend suporta qualquer provedor com API compatível com o formato OpenAI (como Groq, OpenRouter ou a própria OpenAI).
 
 ### 2. Configurações de Banco de Dados e Porta
 A aplicação já vem pré-configurada para rodar na porta `8090` e utilizar o SQLite local (`lista-compras.db`). Essas definições estão localizadas em:
 `src/main/resources/application.properties`
 
-### 3. Compilar e Rodar o Projeto
-Execute os comandos abaixo a partir da raiz do projeto:
+### 3. Compilar e Rodar o Backend
+Execute o comando correspondente à sua plataforma na pasta do backend:
 
 **No Windows (PowerShell):**
 ```powershell
@@ -84,134 +85,22 @@ Execute os comandos abaixo a partir da raiz do projeto:
 ```
 
 A API estará acessível em: `http://localhost:8090`
+A documentação Swagger estará disponível em: **[http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html)**
 
 ---
 
-## 🔐 Autenticação (JWT)
+## 📲 Como Executar o Frontend (Flutter)
+Para rodar a interface do aplicativo e conectá-la ao servidor local:
 
-A API protege todos os endpoints de gerenciamento de dados de forma padrão.
-No primeiro início, a aplicação realiza a semeadura automática (*seeding*) de um usuário administrador padrão para testes:
-
-*   **E-mail:** `admin@gmail.com`
-*   **Senha:** `123456`
-
-Para testar os endpoints protegidos, faça uma requisição POST para `/api/auth/login` para receber seu `accessToken` e adicione-o como cabeçalho `Authorization: Bearer <seu_token>` nas chamadas subsequentes.
-
----
-
-## 📚 Documentação da API (Swagger / OpenAPI)
-
-Com o servidor rodando, você pode acessar a documentação interativa e realizar testes diretos nos endpoints através do Swagger UI no seu navegador:
-
-🔗 **[http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html)**
-
----
-
-## 📡 Detalhamento dos Endpoints Principais
-
-### 🔑 Autenticação
-
-#### `POST /api/auth/login`
-Autentica o usuário e gera os tokens de acesso.
-*   **Body:**
-    ```json
-    {
-      "email": "admin@gmail.com",
-      "password": "123456"
-    }
+1.  Navegue até a pasta do aplicativo Flutter:
+    ```bash
+    cd C:\Workspace\Projetos\lista-compras
     ```
-*   **Resposta (200 OK):**
-    ```json
-    {
-      "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-      "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
-      "tokenType": "Bearer",
-      "expiresIn": 900
-    }
+2.  Instale os pacotes de dependências:
+    ```bash
+    flutter pub get
     ```
-
-#### `POST /api/auth/refresh`
-Gera novos pares de Access Token e Refresh Token sem exigir nova senha.
-*   **Body:**
-    ```json
-    {
-      "refreshToken": "eyJhbGciOiJIUzI1NiJ9..."
-    }
-    ```
-
----
-
-### 📝 Listas de Compras (`Authorization` requerido)
-
-#### `GET /api/lists`
-Retorna todas as listas de compras cadastradas.
-
-#### `POST /api/lists`
-Cria uma nova lista de compras vazia.
-*   **Body:**
-    ```json
-    {
-      "name": "Supermercado Mensal",
-      "budget": 500.0
-    }
-    ```
-
-#### `GET /api/lists/{id}`
-Busca detalhes de uma lista específica, incluindo seus itens.
-
-#### `PUT /api/lists/{id}`
-Atualiza o nome ou orçamento de uma lista de compras.
-
-#### `DELETE /api/lists/{id}`
-Exclui uma lista de compras e todos os seus itens associados.
-
----
-
-### 🍎 Itens das Listas de Compras (`Authorization` requerido)
-
-#### `POST /api/lists/{listId}/items`
-Adiciona um novo item a uma lista.
-*   **Body:**
-    ```json
-    {
-      "description": "Leite Integral",
-      "quantity": 3.0,
-      "unit": "l",
-      "price": 4.50,
-      "isChecked": false
-    }
-    ```
-    *(Unidades válidas: `und`, `g`, `kg`, `l`, `ml`)*
-
-#### `PUT /api/lists/{listId}/items/{itemId}`
-Atualiza as informações de um item específico (descrição, quantidade, preço ou marcar como comprado/não comprado).
-
-#### `DELETE /api/lists/{listId}/items/{itemId}`
-Remove um item específico de uma lista de compras.
-
----
-
-### 🤖 Assistente de Receitas com IA (`Authorization` requerido)
-
-#### `POST /api/ai/recipe-to-list`
-Recebe o texto/receita em linguagem natural e gera dinamicamente uma nova lista com todos os ingredientes devidamente catalogados e com unidades estruturadas.
-*   **Body:**
-    ```json
-    {
-      "recipe": "Quero fazer um bolo de cenoura simples. Leva 3 cenouras médias, 4 ovos, 1 xícara de óleo de soja, 2 xícaras de açúcar, 2 xícaras de farinha de trigo e 1 colher de sopa de fermento em pó."
-    }
-    ```
-*   **Resposta (200 OK):** Retorna a lista de compras gerada e já salva no banco de dados com seus itens.
-    ```json
-    {
-      "id": "abc-123-xyz...",
-      "name": "Bolo de Cenoura Simples",
-      "budget": 0.0,
-      "items": [
-        { "description": "Cenoura média", "quantity": 3.0, "unit": "und", "price": 0.0, "isChecked": false },
-        { "description": "Ovos", "quantity": 4.0, "unit": "und", "price": 0.0, "isChecked": false },
-        { "description": "Óleo de soja", "quantity": 1.0, "unit": "und", "price": 0.0, "isChecked": false },
-        ...
-      ]
-    }
+3.  Execute a aplicação no emulador ou navegador de preferência:
+    ```bash
+    flutter run
     ```
