@@ -26,7 +26,7 @@ graph TD
     subgraph Backend ["Backend REST (Spring Boot)"]
         H[Controllers / Endpoints]
         I[Services / Business Logic]
-        J[SQLite Database]
+        J[PostgreSQL Database]
     end
 
     A -->|Consome / Escuta| B
@@ -148,4 +148,4 @@ Para garantir a coerência e integridade dos dados e evitar entradas maliciosas 
 *   **Uso de `flutter_secure_storage`:** Preferido em detrimento do `SharedPreferences` para armazenar chaves de segurança (tokens JWT). Enquanto o SharedPreferences salva em arquivos XML/JSON comuns sem criptografia, o Secure Storage utiliza *Keystore* (Android) e *Keychain* (iOS) garantindo proteção criptográfica a nível de hardware.
 *   **Arquitetura Baseada em Interceptores:** Centralizar a lógica de renovação silenciosa de tokens no `AuthInterceptor` evita a necessidade de tratar expirações em cada chamada REST individualmente na camada de UI.
 *   **Integração Nativa de IA com Spring AI:** Em vez de usar requisições HTTP genéricas (RestClient/WebClient), o backend adota o **SDK Oficial Spring AI**, que abstrai as chamadas ao provedor de IA e trata de forma transparente fallbacks e formatação de prompts, tornando a aplicação aderente a padrões corporativos robustos.
-*   **SQLite como Banco de Dados do Backend:** SQLite foi selecionado para persistência do Spring Boot por ser um motor embarcado que não exige gerenciamento ou instalação de servidores externos (como MySQL ou PostgreSQL), facilitando a portabilidade e permitindo rodar a aplicação imediatamente.
+*   **PostgreSQL como Banco de Dados do Backend:** PostgreSQL foi selecionado para persistência do Spring Boot por ser um banco de dados relacional robusto e escalável, adequando-se melhor a ambientes de produção e atendendo aos requisitos do sistema.

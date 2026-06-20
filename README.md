@@ -16,7 +16,7 @@ Este repositório contém o backend da aplicação **Lista de Compras**, uma API
 
 ## 🔐 Credenciais de Teste
 
-O banco de dados SQLite local é semeado (*seeded*) automaticamente na primeira execução com um usuário administrador padrão:
+O banco de dados PostgreSQL local é semeado (*seeded*) automaticamente na primeira execução com um usuário administrador padrão:
 
 *   **E-mail:** `admin@gmail.com`
 *   **Senha:** `123456`
@@ -33,8 +33,8 @@ O ecossistema do projeto é baseado em tecnologias modernas e robustas:
     *   *Spring Web* para os endpoints REST.
     *   *Spring Security* para o controle de acesso e autenticação JWT.
     *   *Spring Data JPA* para abstração da camada de persistência.
-*   **SQLite:** Banco de dados relacional local, leve e de configuração rápida (`lista-compras.db`).
-*   **Hibernate Community Dialects (v6.4.4):** Para suporte nativo ao dialeto SQLite na JPA.
+*   **PostgreSQL:** Banco de dados relacional robusto e escalável para persistência em produção.
+*   **PostgreSQL JDBC Driver:** Para conexão e comunicação com o banco de dados.
 *   **JJWT (io.jsonwebtoken v0.12.6):** Biblioteca moderna para geração e validação de tokens JWT (HS256).
 *   **Springdoc OpenAPI UI (v2.5.0):** Para geração e visualização automatizada da documentação interativa no Swagger.
 *   **LLM AI Integration:** Conectividade com provedores compatíveis com a API OpenAI (ex: Groq/Llama 3.1) para conversão inteligente de receitas em linguagem natural em itens estruturados de compras.
@@ -68,7 +68,7 @@ AI_API_MODEL=llama-3.1-8b-instant
 > O backend suporta qualquer provedor com API compatível com o formato OpenAI (como Groq, OpenRouter ou a própria OpenAI).
 
 ### 2. Configurações de Banco de Dados e Porta
-A aplicação já vem pré-configurada para rodar na porta `8090` e utilizar o SQLite local (`lista-compras.db`). Essas definições estão localizadas em:
+A aplicação já vem pré-configurada para rodar na porta `8090` e utilizar o PostgreSQL local (`localhost:5432/lista_compras` com as credenciais padrão do `postgres`). Certifique-se de ter o banco criado. Essas definições estão localizadas em:
 `src/main/resources/application.properties`
 
 ### 3. Compilar e Rodar o Backend
